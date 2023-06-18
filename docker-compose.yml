@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: arm64v8/mysql:8.0.29
+    container_name: 'test_database'
+    hostname: 'test_database'
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USERNAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    volumes:
+      - test_data:/var/lib/${DB_NAME}:delegated
+    networks:
+      - test_network
+    ports:
+      - ${MYSQL_PORT}:3306
+    command: --sql_mode="" --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone="UTC"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  test_data:
+    name: test_data
+    driver: local
+
+networks:
+  test_network:
+    name: test_network
+    driver: bridge
